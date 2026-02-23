@@ -159,6 +159,7 @@ import QRCodeRg1mTodos from '@/pages/dashboard/QRCodeRg1mTodos';
 import QRCodeRgReativar from '@/pages/dashboard/QRCodeRgReativar';
 import Rg2026 from '@/pages/dashboard/Rg2026';
 import Rg2026Todos from '@/pages/dashboard/Rg2026Todos';
+import EditaveisRg from '@/pages/dashboard/EditaveisRg';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -330,6 +331,7 @@ function App() {
                     <Route path="/dashboard/beneficio" element={<DashboardLayout><PainelBeneficios /></DashboardLayout>} />
                     <Route path="/dashboard/editor" element={<DashboardLayout><DashboardHome /></DashboardLayout>} />
                     <Route path="/dashboard/editavel" element={<DashboardLayout><PainelEditavel /></DashboardLayout>} />
+                    <Route path="/dashboard/editaveis-rg" element={<DashboardLayout><EditaveisRg /></DashboardLayout>} />
                     <Route path="/dashboard/qrcode" element={<DashboardLayout><QRCodePage /></DashboardLayout>} />
                     <Route path="/dashboard/qrcode-rg-6m" element={<DashboardLayout><QRCodeRg6m /></DashboardLayout>} />
                     <Route path="/dashboard/qrcode-rg-6m/todos" element={<DashboardLayout><QRCodeRg6mTodos /></DashboardLayout>} />
