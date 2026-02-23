@@ -14,7 +14,7 @@ class EditaveisRg extends BaseModel {
     /**
      * Listar arquivos disponíveis (ativos)
      */
-    public function listArquivos($limit = 50, $offset = 0, $search = null, $categoria = null) {
+    public function listArquivos($limit = 50, $offset = 0, $search = null, $categoria = null, $tipo = null, $versao = null) {
         $where = ['a.ativo = 1'];
         $params = [];
 
@@ -29,6 +29,16 @@ class EditaveisRg extends BaseModel {
             $params[] = $categoria;
         }
 
+        if ($tipo) {
+            $where[] = 'a.tipo = ?';
+            $params[] = $tipo;
+        }
+
+        if ($versao) {
+            $where[] = 'a.versao = ?';
+            $params[] = $versao;
+        }
+
         $whereSql = 'WHERE ' . implode(' AND ', $where);
 
         $query = "SELECT a.* FROM {$this->table} a {$whereSql} ORDER BY a.id DESC LIMIT ? OFFSET ?";
@@ -40,7 +50,7 @@ class EditaveisRg extends BaseModel {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function countArquivos($search = null, $categoria = null) {
+    public function countArquivos($search = null, $categoria = null, $tipo = null, $versao = null) {
         $where = ['ativo = 1'];
         $params = [];
 
@@ -53,6 +63,16 @@ class EditaveisRg extends BaseModel {
         if ($categoria) {
             $where[] = 'categoria = ?';
             $params[] = $categoria;
+        }
+
+        if ($tipo) {
+            $where[] = 'tipo = ?';
+            $params[] = $tipo;
+        }
+
+        if ($versao) {
+            $where[] = 'versao = ?';
+            $params[] = $versao;
         }
 
         $whereSql = 'WHERE ' . implode(' AND ', $where);
@@ -114,7 +134,7 @@ class EditaveisRg extends BaseModel {
      * Listar compras do usuário
      */
     public function listComprasUsuario($userId, $limit = 50, $offset = 0) {
-        $query = "SELECT c.*, a.titulo, a.descricao, a.formato, a.tamanho_arquivo, a.arquivo_url, a.preview_url, a.categoria
+        $query = "SELECT c.*, a.titulo, a.descricao, a.formato, a.tamanho_arquivo, a.arquivo_url, a.preview_url, a.categoria, a.tipo, a.versao
                   FROM {$this->tableCompras} c
                   INNER JOIN {$this->table} a ON a.id = c.arquivo_id
                   WHERE c.user_id = ?

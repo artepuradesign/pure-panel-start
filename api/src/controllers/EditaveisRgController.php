@@ -23,9 +23,11 @@ class EditaveisRgController {
             $offset = isset($_GET['offset']) ? max(0, (int)$_GET['offset']) : 0;
             $search = $_GET['search'] ?? null;
             $categoria = $_GET['categoria'] ?? null;
+            $tipo = $_GET['tipo'] ?? null;
+            $versao = $_GET['versao'] ?? null;
 
-            $rows = $this->model->listArquivos($limit, $offset, $search, $categoria);
-            $total = $this->model->countArquivos($search, $categoria);
+            $rows = $this->model->listArquivos($limit, $offset, $search, $categoria, $tipo, $versao);
+            $total = $this->model->countArquivos($search, $categoria, $tipo, $versao);
 
             // Verificar quais o usuário já comprou
             $userId = AuthMiddleware::getCurrentUserId();
@@ -139,7 +141,32 @@ class EditaveisRgController {
             $transacoesStmt = $this->db->prepare($transacoesQuery);
             $transacoesStmt->execute([$userId, $preco, $transDesc, 'editaveis_rg_' . $arquivoId]);
 
-            // 4) Registrar compra
+            // 4) Registrar na tabela consultations (padrão de registro como consultas)
+            $saldoUsado = $walletType === 'plan' ? 'plano' : 'carteira';
+            $metadata = json_encode([
+                'source' => 'editaveis-rg',
+                'arquivo_id' => $arquivoId,
+                'tipo' => $arquivo['tipo'] ?? 'RG',
+                'versao' => $arquivo['versao'] ?? null,
+                'formato' => $arquivo['formato'] ?? '.CDR',
+                'discount' => 0,
+                'original_price' => $preco,
+                'discounted_price' => $preco,
+                'final_price' => $preco,
+                'subscription_discount' => false,
+                'plan_type' => 'Pré-Pago',
+                'module_id' => 85,
+                'timestamp' => date('c'),
+                'saldo_usado' => $saldoUsado,
+            ]);
+            $ipAddress = $_SERVER['REMOTE_ADDR'] ?? null;
+            $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
+            $consultationQuery = "INSERT INTO consultations (user_id, module_type, document, cost, result_data, status, ip_address, user_agent, metadata, created_at, updated_at) 
+                                 VALUES (?, 'editavel_rg', ?, ?, NULL, 'completed', ?, ?, ?, NOW(), NOW())";
+            $consultationStmt = $this->db->prepare($consultationQuery);
+            $consultationStmt->execute([$userId, $arquivo['titulo'], $preco, $ipAddress, $userAgent, $metadata]);
+
+            // 5) Registrar compra
             $compraId = $this->model->registrarCompra($userId, $arquivoId, $preco, 0, 'saldo');
 
             $this->db->commit();

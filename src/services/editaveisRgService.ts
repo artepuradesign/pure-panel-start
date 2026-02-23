@@ -7,6 +7,8 @@ export interface EditavelRgArquivo {
   titulo: string;
   descricao: string | null;
   categoria: string | null;
+  tipo: string;
+  versao: string | null;
   formato: string | null;
   tamanho_arquivo: string | null;
   arquivo_url: string;
@@ -38,6 +40,8 @@ export interface EditavelRgCompra {
   arquivo_url: string;
   preview_url: string | null;
   categoria: string | null;
+  tipo: string;
+  versao: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -78,12 +82,14 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
 }
 
 export const editaveisRgService = {
-  async listArquivos(params: { limit?: number; offset?: number; search?: string; categoria?: string } = {}) {
+  async listArquivos(params: { limit?: number; offset?: number; search?: string; categoria?: string; tipo?: string; versao?: string } = {}) {
     const qs = new URLSearchParams();
     if (params.limit !== undefined) qs.set('limit', String(params.limit));
     if (params.offset !== undefined) qs.set('offset', String(params.offset));
     if (params.search) qs.set('search', params.search);
     if (params.categoria) qs.set('categoria', params.categoria);
+    if (params.tipo) qs.set('tipo', params.tipo);
+    if (params.versao) qs.set('versao', params.versao);
 
     const endpoint = `/editaveis-rg/arquivos${qs.toString() ? `?${qs.toString()}` : ''}`;
     return apiRequest<{ data: EditavelRgArquivo[]; pagination: { total: number; limit: number; offset: number } }>(endpoint);
