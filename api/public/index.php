@@ -249,6 +249,9 @@ try {
         } else {
             Response::error('Endpoint Mercado Pago não encontrado: ' . $uri, 404);
         }
+    } elseif (strpos($uri, '/editaveis-rg') === 0) {
+        error_log("ROUTING: Direcionando para Editáveis RG");
+        require_once __DIR__ . '/../src/routes/editaveis_rg.php';
     } elseif (strpos($uri, '/revendas') === 0) {
         error_log("ROUTING: Direcionando para revendas");
         require_once __DIR__ . '/../src/routes/revendas.php';
@@ -323,7 +326,8 @@ try {
                 'historico-stats' => '/historico/estatisticas',
                 'base-historico-veiculo' => '/base-historico-veiculo',
                 'pix-payments' => '/pix-payments',
-                'mercadopago-list-payments' => '/mercadopago/list-payments'
+                'mercadopago-list-payments' => '/mercadopago/list-payments',
+                'editaveis-rg' => '/editaveis-rg'
             ]
         ], 'API Externa operacional');
     } else {
