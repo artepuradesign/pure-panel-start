@@ -2,14 +2,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { FileText, Download, Search, ShoppingCart, CheckCircle, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
+import { FileText, Download, ShoppingCart, CheckCircle, Loader2, AlertCircle, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWalletBalance } from '@/hooks/useWalletBalance';
-import { editaveisRgService, type EditavelRgArquivo } from '@/services/editaveisRgService';
+import { editaveisRgService, type EditavelRgArquivo, type EditavelRgCompra } from '@/services/editaveisRgService';
 import SimpleTitleBar from '@/components/dashboard/SimpleTitleBar';
 
 const EditaveisRg = () => {
@@ -18,8 +18,9 @@ const EditaveisRg = () => {
   const { balance, loadBalance: reloadBalance } = useWalletBalance();
 
   const [arquivos, setArquivos] = useState<EditavelRgArquivo[]>([]);
+  const [compras, setCompras] = useState<EditavelRgCompra[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [comprasLoading, setComprasLoading] = useState(true);
   const [selectedArquivo, setSelectedArquivo] = useState<EditavelRgArquivo | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
@@ -31,7 +32,7 @@ const EditaveisRg = () => {
   const loadArquivos = useCallback(async () => {
     try {
       setLoading(true);
-      const result = await editaveisRgService.listArquivos({ limit: 100, search: search || undefined });
+      const result = await editaveisRgService.listArquivos({ limit: 100 });
       if (result.success && result.data) {
         setArquivos(result.data.data || []);
       } else {
@@ -42,18 +43,30 @@ const EditaveisRg = () => {
     } finally {
       setLoading(false);
     }
-  }, [search]);
+  }, []);
+
+  const loadCompras = useCallback(async () => {
+    try {
+      setComprasLoading(true);
+      const result = await editaveisRgService.minhasCompras({ limit: 100 });
+      if (result.success && result.data) {
+        setCompras(result.data.data || []);
+      } else {
+        setCompras([]);
+      }
+    } catch {
+      setCompras([]);
+    } finally {
+      setComprasLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!user) return;
     loadArquivos();
+    loadCompras();
     reloadBalance();
-  }, [user, loadArquivos, reloadBalance]);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    loadArquivos();
-  };
+  }, [user, loadArquivos, loadCompras, reloadBalance]);
 
   const handleSelectArquivo = (arquivo: EditavelRgArquivo) => {
     if (arquivo.comprado) {
@@ -81,7 +94,7 @@ const EditaveisRg = () => {
           window.open(result.data.arquivo_url, '_blank');
         }
 
-        await Promise.all([loadArquivos(), reloadBalance()]);
+        await Promise.all([loadArquivos(), loadCompras(), reloadBalance()]);
       } else {
         toast.error(result.error || 'Erro ao adquirir arquivo');
       }
@@ -99,6 +112,7 @@ const EditaveisRg = () => {
         window.open(result.data.arquivo_url, '_blank');
         toast.success(`Download de "${result.data.titulo}" iniciado`);
         loadArquivos();
+        loadCompras();
       } else {
         toast.error(result.error || 'Erro ao baixar arquivo');
       }
@@ -117,8 +131,6 @@ const EditaveisRg = () => {
         onBack={() => navigate('/dashboard/editavel')}
         icon={<FileText className="h-5 w-5" />}
       />
-
-      {/* Lista de Arquivos */}
 
       {/* Lista de Arquivos */}
       {loading ? (
@@ -193,6 +205,51 @@ const EditaveisRg = () => {
               </CardContent>
             </Card>
           ))}
+        </div>
+      )}
+
+      {/* Histórico de Compras */}
+      {!comprasLoading && compras.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
+            <Clock className="h-4 w-4 text-muted-foreground" />
+            Histórico de Compras
+          </h3>
+          <Card className="bg-card border-border overflow-hidden">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Arquivo</TableHead>
+                    <TableHead>Formato</TableHead>
+                    <TableHead>Preço Pago</TableHead>
+                    <TableHead>Downloads</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead className="text-right">Ação</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {compras.map((compra) => (
+                    <TableRow key={compra.id}>
+                      <TableCell className="font-medium">{compra.titulo}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{compra.formato || '.CDR'}</Badge>
+                      </TableCell>
+                      <TableCell>{formatPrice(compra.preco_pago)}</TableCell>
+                      <TableCell>{compra.downloads_count}x</TableCell>
+                      <TableCell>{new Date(compra.created_at).toLocaleDateString('pt-BR')}</TableCell>
+                      <TableCell className="text-right">
+                        <Button size="sm" variant="outline" onClick={() => handleDownload(compra.arquivo_id)}>
+                          <Download className="h-4 w-4 mr-1" />
+                          Baixar
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </Card>
         </div>
       )}
 
