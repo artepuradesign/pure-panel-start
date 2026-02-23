@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,12 +11,44 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useWalletBalance } from '@/hooks/useWalletBalance';
 import { editaveisRgService, type EditavelRgArquivo, type EditavelRgCompra } from '@/services/editaveisRgService';
 import SimpleTitleBar from '@/components/dashboard/SimpleTitleBar';
+import { useApiModules } from '@/hooks/useApiModules';
+import { useUserSubscription } from '@/hooks/useUserSubscription';
+import { getPlanType } from '@/utils/planUtils';
 
 const EditaveisRg = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, profile } = useAuth();
   const isAdmin = profile?.user_role === 'admin' || profile?.user_role === 'suporte';
   const { balance, loadBalance: reloadBalance } = useWalletBalance();
+  const { modules } = useApiModules();
+  const {
+    hasActiveSubscription,
+    subscription,
+    discountPercentage,
+    calculateDiscountedPrice: calculateSubscriptionDiscount,
+    isLoading: subscriptionLoading
+  } = useUserSubscription();
+
+  // Encontrar módulo ID 85
+  const currentModule = useMemo(() => {
+    return (modules || []).find((m: any) => m.id === 85) || null;
+  }, [modules]);
+
+  const modulePrice = useMemo(() => {
+    return Number(currentModule?.price ?? 0);
+  }, [currentModule]);
+
+  const userPlan = hasActiveSubscription && subscription
+    ? subscription.plan_name
+    : (user ? localStorage.getItem(`user_plan_${user.id}`) || 'Pré-Pago' : 'Pré-Pago');
+
+  const { discountedPrice: finalPrice, hasDiscount } = hasActiveSubscription
+    ? calculateSubscriptionDiscount(modulePrice)
+    : { discountedPrice: modulePrice, hasDiscount: false };
+
+  const discount = hasDiscount ? discountPercentage : 0;
+  const originalPrice = modulePrice;
 
   const [arquivos, setArquivos] = useState<EditavelRgArquivo[]>([]);
   const [compras, setCompras] = useState<EditavelRgCompra[]>([]);
@@ -133,6 +165,44 @@ const EditaveisRg = () => {
         icon={<FileText className="h-5 w-5" />}
       />
 
+      {/* Card de Preço do Módulo com Desconto - igual ao CPF Simples */}
+      {modulePrice > 0 && (
+        <div className="relative bg-gradient-to-br from-purple-50/50 via-white to-blue-50/30 dark:from-gray-800/50 dark:via-gray-800 dark:to-purple-900/20 rounded-lg border border-purple-100/50 dark:border-purple-800/30 shadow-sm transition-all duration-300">
+          {hasDiscount && (
+            <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 z-10 pointer-events-none">
+              <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 px-2.5 py-1 text-xs font-bold shadow-lg">
+                {discount}% OFF
+              </Badge>
+            </div>
+          )}
+          <div className="relative p-3.5 md:p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                <div className="w-1 h-10 bg-gradient-to-b from-purple-500 to-blue-500 rounded-full flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-0.5">
+                    Plano Ativo
+                  </p>
+                  <h3 className="text-sm md:text-base font-bold text-foreground truncate">
+                    {hasActiveSubscription ? subscription?.plan_name : userPlan}
+                  </h3>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+                {hasDiscount && (
+                  <span className="text-[10px] md:text-xs text-muted-foreground line-through">
+                    R$ {originalPrice.toFixed(2)}
+                  </span>
+                )}
+                <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400 bg-clip-text text-transparent whitespace-nowrap">
+                  R$ {finalPrice.toFixed(2)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Lista de Arquivos */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
@@ -156,6 +226,17 @@ const EditaveisRg = () => {
               }`}
               onClick={() => handleSelectArquivo(arquivo)}
             >
+              {/* Preview da imagem */}
+              {arquivo.preview_url && (
+                <div className="w-full h-36 overflow-hidden rounded-t-lg">
+                  <img
+                    src={arquivo.preview_url}
+                    alt={arquivo.titulo}
+                    className="w-full h-full object-cover"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                </div>
+              )}
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
                   <CardTitle className="text-base leading-tight">{arquivo.titulo}</CardTitle>
@@ -180,8 +261,7 @@ const EditaveisRg = () => {
                     <Badge variant="outline" className="text-xs">{arquivo.categoria}</Badge>
                   )}
                 </div>
-                <div className="flex items-center justify-between pt-2 border-t border-border">
-                  <span className="text-lg font-bold text-primary">{formatPrice(arquivo.preco)}</span>
+                <div className="flex items-center justify-end pt-2 border-t border-border">
                   {isAdmin ? (
                     <div className="flex gap-1">
                       <Button
@@ -314,17 +394,29 @@ const EditaveisRg = () => {
               </Card>
 
               <div className="space-y-2 text-sm">
+                {hasDiscount && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Preço original:</span>
+                    <span className="font-semibold text-muted-foreground line-through">{formatPrice(originalPrice)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Preço:</span>
-                  <span className="font-semibold text-foreground">{formatPrice(selectedArquivo.preco)}</span>
+                  <span className="font-semibold text-foreground">{formatPrice(finalPrice)}</span>
                 </div>
+                {hasDiscount && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Desconto:</span>
+                    <span className="font-semibold text-green-600">{discount}%</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Saldo disponível:</span>
-                  <span className={`font-semibold ${totalBalance >= selectedArquivo.preco ? 'text-green-600' : 'text-destructive'}`}>
+                  <span className={`font-semibold ${totalBalance >= finalPrice ? 'text-green-600' : 'text-destructive'}`}>
                     {formatPrice(totalBalance)}
                   </span>
                 </div>
-                {totalBalance < selectedArquivo.preco && (
+                {totalBalance < finalPrice && (
                   <div className="flex items-center gap-2 text-destructive bg-destructive/10 p-2 rounded">
                     <AlertCircle className="h-4 w-4 shrink-0" />
                     <span className="text-xs">Saldo insuficiente para esta compra.</span>
@@ -340,7 +432,7 @@ const EditaveisRg = () => {
             </Button>
             <Button
               onClick={handleConfirmPurchase}
-              disabled={isPurchasing || !selectedArquivo || totalBalance < (selectedArquivo?.preco || 0)}
+              disabled={isPurchasing || !selectedArquivo || totalBalance < finalPrice}
             >
               {isPurchasing ? (
                 <>
