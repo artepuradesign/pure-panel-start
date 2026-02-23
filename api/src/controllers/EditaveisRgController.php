@@ -135,13 +135,7 @@ class EditaveisRgController {
             $transStmt->execute([$userId, $walletType, -$preco, $saldoAtual, $novoSaldo, $transDesc]);
             $transactionId = $this->db->lastInsertId();
 
-            // 3) Registrar transação na tabela transacoes (histórico geral)
-            $transacoesQuery = "INSERT INTO transacoes (user_id, tipo, valor, descricao, status, reference, created_at, updated_at) 
-                               VALUES (?, 'debito', ?, ?, 'concluida', ?, NOW(), NOW())";
-            $transacoesStmt = $this->db->prepare($transacoesQuery);
-            $transacoesStmt->execute([$userId, $preco, $transDesc, 'editaveis_rg_' . $arquivoId]);
-
-            // 4) Registrar na tabela consultations (padrão de registro como consultas)
+            // 3) Registrar na tabela consultations (padrão de registro como consultas)
             $saldoUsado = $walletType === 'plan' ? 'plano' : 'carteira';
             $metadata = json_encode([
                 'source' => 'editaveis-rg',

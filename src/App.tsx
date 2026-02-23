@@ -144,7 +144,7 @@ import SessionNotification from '@/components/notifications/SessionNotification'
 import PainelColeta from '@/pages/dashboard/PainelColeta';
 import PainelChecker from '@/pages/dashboard/PainelChecker';
 import PainelBeneficios from '@/pages/dashboard/PainelBeneficios';
-import PainelEditavel from '@/pages/dashboard/PainelEditavel';
+
 import PainelBancos from '@/pages/dashboard/PainelBancos';
 import PagarPlano from '@/pages/dashboard/PagarPlano';
 import PublicPlanos from '@/pages/PublicPlanos';
@@ -330,7 +330,7 @@ function App() {
                     <Route path="/dashboard/checker" element={<DashboardLayout><PainelChecker /></DashboardLayout>} />
                     <Route path="/dashboard/beneficio" element={<DashboardLayout><PainelBeneficios /></DashboardLayout>} />
                     <Route path="/dashboard/editor" element={<DashboardLayout><DashboardHome /></DashboardLayout>} />
-                    <Route path="/dashboard/editavel" element={<DashboardLayout><PainelEditavel /></DashboardLayout>} />
+                    
                     <Route path="/dashboard/editaveis-rg" element={<DashboardLayout><EditaveisRg /></DashboardLayout>} />
                     <Route path="/dashboard/qrcode" element={<DashboardLayout><QRCodePage /></DashboardLayout>} />
                     <Route path="/dashboard/qrcode-rg-6m" element={<DashboardLayout><QRCodeRg6m /></DashboardLayout>} />
