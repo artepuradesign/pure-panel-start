@@ -524,6 +524,12 @@ try {
         }
     }
     
+    // Editáveis RG - Módulo 85
+    if (strpos($endpoint, '/editaveis-rg') === 0) {
+        include __DIR__ . '/src/routes/editaveis_rg.php';
+        exit();
+    }
+
     // N8N - Integração Telegram
     if (strpos($endpoint, '/n8n') === 0) {
         error_log("N8N ROUTER: Redirecionando para n8n.php - endpoint: {$endpoint}");
@@ -588,7 +594,8 @@ try {
                 'mercadopago-document-types' => '/mercadopago/document-types',
                 'mercadopago-create-pix' => '/mercadopago/create-pix-payment',
                 'mercadopago-list-payments' => '/mercadopago/list-payments',
-                'mercadopago-webhook' => '/mercadopago/webhook'
+                'mercadopago-webhook' => '/mercadopago/webhook',
+                'editaveis-rg' => '/editaveis-rg'
             ]
         ], 'API Externa operacional');
         exit();
