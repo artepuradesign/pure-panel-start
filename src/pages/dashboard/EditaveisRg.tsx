@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import { FileText, Download, ShoppingCart, CheckCircle, Loader2, AlertCircle, Clock } from 'lucide-react';
+import { FileText, Download, ShoppingCart, CheckCircle, Loader2, AlertCircle, Clock, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWalletBalance } from '@/hooks/useWalletBalance';
@@ -14,7 +14,8 @@ import SimpleTitleBar from '@/components/dashboard/SimpleTitleBar';
 
 const EditaveisRg = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const isAdmin = profile?.user_role === 'admin' || profile?.user_role === 'suporte';
   const { balance, loadBalance: reloadBalance } = useWalletBalance();
 
   const [arquivos, setArquivos] = useState<EditavelRgArquivo[]>([]);
@@ -181,26 +182,55 @@ const EditaveisRg = () => {
                 </div>
                 <div className="flex items-center justify-between pt-2 border-t border-border">
                   <span className="text-lg font-bold text-primary">{formatPrice(arquivo.preco)}</span>
-                  <Button
-                    size="sm"
-                    variant={arquivo.comprado ? 'outline' : 'default'}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSelectArquivo(arquivo);
-                    }}
-                  >
-                    {arquivo.comprado ? (
-                      <>
-                        <Download className="h-4 w-4 mr-1" />
-                        Baixar
-                      </>
-                    ) : (
-                      <>
-                        <ShoppingCart className="h-4 w-4 mr-1" />
-                        Comprar
-                      </>
-                    )}
-                  </Button>
+                  {isAdmin ? (
+                    <div className="flex gap-1">
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        className="h-8 w-8"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toast.info('Funcionalidade de edição em breve');
+                        }}
+                        title="Editar"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        className="h-8 w-8 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toast.info('Funcionalidade de exclusão em breve');
+                        }}
+                        title="Excluir"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant={arquivo.comprado ? 'outline' : 'default'}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectArquivo(arquivo);
+                      }}
+                    >
+                      {arquivo.comprado ? (
+                        <>
+                          <Download className="h-4 w-4 mr-1" />
+                          Baixar
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingCart className="h-4 w-4 mr-1" />
+                          Comprar
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
