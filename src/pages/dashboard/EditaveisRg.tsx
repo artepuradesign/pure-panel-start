@@ -128,7 +128,7 @@ const EditaveisRg = () => {
       <SimpleTitleBar
         title="Editáveis RG"
         subtitle="Arquivos editáveis em CorelDraw (.CDR)"
-        onBack={() => navigate('/dashboard/editavel')}
+        onBack={() => navigate('/dashboard')}
         icon={<FileText className="h-5 w-5" />}
       />
 
