@@ -118,44 +118,7 @@ const EditaveisRg = () => {
         icon={<FileText className="h-5 w-5" />}
       />
 
-      {/* Saldo */}
-      <Card className="bg-card border-border">
-        <CardContent className="p-4">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Saldo Carteira:</span>
-              <Badge variant="outline" className="text-base font-semibold">{formatPrice(walletBalance)}</Badge>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Saldo Plano:</span>
-              <Badge variant="outline" className="text-base font-semibold">{formatPrice(planBalance)}</Badge>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Total:</span>
-              <Badge className="text-base font-semibold bg-primary">{formatPrice(totalBalance)}</Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Busca */}
-      <form onSubmit={handleSearchSubmit} className="flex gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar arquivos..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Button type="submit" variant="outline" size="icon">
-          <Search className="h-4 w-4" />
-        </Button>
-        <Button type="button" variant="outline" size="icon" onClick={loadArquivos}>
-          <RefreshCw className="h-4 w-4" />
-        </Button>
-      </form>
+      {/* Lista de Arquivos */}
 
       {/* Lista de Arquivos */}
       {loading ? (
