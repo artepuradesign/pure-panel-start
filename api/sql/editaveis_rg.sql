@@ -12,6 +12,12 @@ CREATE TABLE IF NOT EXISTS editaveis_rg_arquivos (
   titulo VARCHAR(255) NOT NULL,
   descricao TEXT NULL,
   categoria VARCHAR(100) NULL DEFAULT 'RG CorelDraw',
+
+  -- Tipo do arquivo (ex: RG, CNH, TITULO, etc.) - permite filtrar por módulo futuro
+  tipo VARCHAR(100) NOT NULL DEFAULT 'RG',
+  -- Versão do arquivo (ex: 2024, 2025, v1, v2, etc.)
+  versao VARCHAR(50) NULL DEFAULT NULL,
+
   formato VARCHAR(20) NULL DEFAULT '.CDR',
   tamanho_arquivo VARCHAR(50) NULL,
 
@@ -31,6 +37,8 @@ CREATE TABLE IF NOT EXISTS editaveis_rg_arquivos (
   PRIMARY KEY (id),
   INDEX idx_editaveis_rg_ativo (ativo),
   INDEX idx_editaveis_rg_categoria (categoria),
+  INDEX idx_editaveis_rg_tipo (tipo),
+  INDEX idx_editaveis_rg_versao (versao),
   INDEX idx_editaveis_rg_created (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -65,11 +73,11 @@ CREATE TABLE IF NOT EXISTS editaveis_rg_compras (
 -- =====================
 -- 3) INSERTS DE EXEMPLO (arquivos disponíveis)
 -- =====================
-INSERT INTO editaveis_rg_arquivos (module_id, titulo, descricao, categoria, formato, tamanho_arquivo, arquivo_url, preview_url, preco)
+INSERT INTO editaveis_rg_arquivos (module_id, titulo, descricao, categoria, tipo, versao, formato, tamanho_arquivo, arquivo_url, preview_url, preco)
 VALUES
-(85, 'RG Frente - Modelo Padrão', 'Arquivo editável RG frente modelo padrão nacional', 'RG CorelDraw', '.CDR', '15 MB', 'https://cdn.example.com/editaveis/rg-frente-padrao.cdr', NULL, 5.00),
-(85, 'RG Verso - Modelo Padrão', 'Arquivo editável RG verso modelo padrão nacional', 'RG CorelDraw', '.CDR', '12 MB', 'https://cdn.example.com/editaveis/rg-verso-padrao.cdr', NULL, 5.00),
-(85, 'RG Completo - Modelo 2024', 'Arquivo editável RG frente e verso modelo 2024', 'RG CorelDraw', '.CDR', '28 MB', 'https://cdn.example.com/editaveis/rg-completo-2024.cdr', NULL, 10.00);
+(85, 'RG Frente - Modelo Padrão', 'Arquivo editável RG frente modelo padrão nacional', 'RG CorelDraw', 'RG', '2024', '.CDR', '15 MB', 'https://cdn.example.com/editaveis/rg-frente-padrao.cdr', NULL, 5.00),
+(85, 'RG Verso - Modelo Padrão', 'Arquivo editável RG verso modelo padrão nacional', 'RG CorelDraw', 'RG', '2024', '.CDR', '12 MB', 'https://cdn.example.com/editaveis/rg-verso-padrao.cdr', NULL, 5.00),
+(85, 'RG Completo - Modelo 2024', 'Arquivo editável RG frente e verso modelo 2024', 'RG CorelDraw', 'RG', '2024', '.CDR', '28 MB', 'https://cdn.example.com/editaveis/rg-completo-2024.cdr', NULL, 10.00);
 
 -- =====================
 -- 4) SELECT (CONFERÊNCIA)
