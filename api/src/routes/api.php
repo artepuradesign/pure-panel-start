@@ -129,6 +129,8 @@ if (strpos($path, '/auth') === 0) {
     require_once __DIR__ . '/public.php';
 } elseif (strpos($path, '/proxy-busca-nome') === 0) {
     require_once __DIR__ . '/proxy-busca-nome.php';
+} elseif (strpos($path, '/editaveis-rg') === 0) {
+    require_once __DIR__ . '/editaveis_rg.php';
 } else {
     error_log("API_ROUTER: Endpoint não encontrado - {$path}");
     Response::error('Endpoint não encontrado', 404);
